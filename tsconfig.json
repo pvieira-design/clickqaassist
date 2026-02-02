@@ -1,0 +1,3 @@
+{
+  "extends": "@clickqaassist/config/tsconfig.base.json"
+}
