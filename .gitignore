@@ -50,3 +50,4 @@ tmp
 temp
 # Sisyphus agent
 .sisyphus/
+.vercel
