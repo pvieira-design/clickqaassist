@@ -21,15 +21,57 @@ const DEPARTMENTS = [
 ] as const;
 
 const FEEDBACK_TYPES = [
+  // ── Positivos ──
   { name: "Boa pronúncia no áudio", category: "POSITIVE" as const, points: 5 },
   { name: "Usou script correto", category: "POSITIVE" as const, points: 3 },
   { name: "Resposta rápida", category: "POSITIVE" as const, points: 2 },
   { name: "Empatia demonstrada", category: "POSITIVE" as const, points: 3 },
+  { name: "Excelente rapport com paciente", category: "POSITIVE" as const, points: 5 },
+  { name: "Resposta clara e objetiva", category: "POSITIVE" as const, points: 3 },
+  { name: "Boa condução de objeção", category: "POSITIVE" as const, points: 4 },
+  { name: "Proatividade no atendimento", category: "POSITIVE" as const, points: 4 },
+  { name: "Resolução rápida e eficiente", category: "POSITIVE" as const, points: 4 },
+  { name: "Uso correto de protocolo", category: "POSITIVE" as const, points: 3 },
+  { name: "Boa personalização da mensagem", category: "POSITIVE" as const, points: 3 },
+  { name: "Empatia destacada", category: "POSITIVE" as const, points: 4 },
+  { name: "Boa recuperação de paciente inativo", category: "POSITIVE" as const, points: 5 },
+
+  // ── Neutros ──
   { name: "Erro ortográfico", category: "NEUTRAL" as const, points: 0 },
+  { name: "Oportunidade de melhoria identificada", category: "NEUTRAL" as const, points: 0 },
+  { name: "Atendimento dentro do esperado", category: "NEUTRAL" as const, points: 0 },
+  { name: "Necessita de treinamento específico", category: "NEUTRAL" as const, points: 0 },
+
+  // ── Negativos: Comunicação / Tom ──
+  { name: "Resposta robótica", category: "NEGATIVE" as const, points: -3 },
+  { name: "Tom inadequado", category: "NEGATIVE" as const, points: -5 },
   { name: "Falta de empatia", category: "NEGATIVE" as const, points: -5 },
+  { name: "Resposta genérica", category: "NEGATIVE" as const, points: -3 },
+
+  // ── Negativos: Texto / Formatação ──
+  { name: "Formatação errada da frase", category: "NEGATIVE" as const, points: -2 },
+  { name: "Erro de português", category: "NEGATIVE" as const, points: -2 },
+  { name: "Mensagem confusa ou mal estruturada", category: "NEGATIVE" as const, points: -3 },
+  { name: "Mensagem muito longa", category: "NEGATIVE" as const, points: -2 },
+  { name: "Uso excessivo de emojis", category: "NEGATIVE" as const, points: -1 },
+
+  // ── Negativos: Áudio ──
+  { name: "Áudio muito curto", category: "NEGATIVE" as const, points: -2 },
+  { name: "Áudio muito longo", category: "NEGATIVE" as const, points: -2 },
+  { name: "Áudio com qualidade ruim", category: "NEGATIVE" as const, points: -3 },
+  { name: "Áudio sem clareza na explicação", category: "NEGATIVE" as const, points: -3 },
+
+  // ── Negativos: Atendimento / Conduta ──
+  { name: "Informação incorreta", category: "NEGATIVE" as const, points: -5 },
+  { name: "Não respondeu a dúvida do paciente", category: "NEGATIVE" as const, points: -4 },
   { name: "Falta de personalização", category: "NEGATIVE" as const, points: -3 },
   { name: "Falta de observar detalhes", category: "NEGATIVE" as const, points: -4 },
   { name: "Demora na resposta", category: "NEGATIVE" as const, points: -2 },
+  { name: "Encerrou atendimento prematuramente", category: "NEGATIVE" as const, points: -4 },
+  { name: "Não seguiu protocolo", category: "NEGATIVE" as const, points: -4 },
+  { name: "Não identificou urgência", category: "NEGATIVE" as const, points: -5 },
+  { name: "Faltou follow-up com o paciente", category: "NEGATIVE" as const, points: -3 },
+  { name: "Encaminhou para setor errado", category: "NEGATIVE" as const, points: -4 },
 ];
 
 interface UserSeed {

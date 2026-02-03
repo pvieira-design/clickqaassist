@@ -241,6 +241,23 @@ export default function MeusFeedbacks() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 border-t border-secondary pt-3">
+                  {feedback.message?.chat?.chatGuruUrl && (
+                    <Button
+                      color="secondary"
+                      size="sm"
+                      onClick={(e: React.MouseEvent) => {
+                        e.stopPropagation();
+                        window.open(
+                          feedback.message!.chat!.chatGuruUrl!,
+                          "_blank",
+                          "noopener,noreferrer",
+                        );
+                      }}
+                    >
+                      Ver no ChatGuru
+                    </Button>
+                  )}
+
                   {feedback.status === "PENDING" && (
                     <Button
                       color="secondary"

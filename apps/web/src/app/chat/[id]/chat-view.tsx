@@ -44,6 +44,39 @@ function isSameDay(a: Date | string, b: Date | string): boolean {
   );
 }
 
+type AnalysisMode = "ALL" | "POSITIVE" | "NEUTRAL" | "NEGATIVE";
+
+const modeLabels: Record<AnalysisMode, string> = {
+  ALL: "Análise Completa",
+  NEGATIVE: "Analisar Erros",
+  POSITIVE: "Analisar Acertos",
+  NEUTRAL: "Pontos de Atenção",
+};
+
+const modeDescriptions: Record<AnalysisMode, string> = {
+  ALL: "Analisa erros, acertos e pontos de atenção de uma vez",
+  NEGATIVE: "Foca apenas em erros e problemas no atendimento",
+  POSITIVE: "Foca apenas em acertos e boas práticas",
+  NEUTRAL: "Foca em pontos de atenção e pequenas falhas",
+};
+
+const modeBadgeColors: Record<AnalysisMode, "error" | "success" | "warning"> = {
+  ALL: "warning",
+  NEGATIVE: "error",
+  POSITIVE: "success",
+  NEUTRAL: "warning",
+};
+
+interface AISuggestion {
+  id: string;
+  messageId: string;
+  feedbackTypeName: string;
+  feedbackTypeId: string | null;
+  category: string;
+  reasoning: string;
+  comment: string;
+}
+
 export default function ChatView({ chatId }: { chatId: string }) {
   const chat = useQuery(trpc.chat.getById.queryOptions({ id: chatId }));
   const router = useRouter();
@@ -60,7 +93,19 @@ export default function ChatView({ chatId }: { chatId: string }) {
   const [selectedFeedbackTypeId, setSelectedFeedbackTypeId] = useState("");
   const [comment, setComment] = useState("");
 
+  const [aiSuggestions, setAiSuggestions] = useState<AISuggestion[]>([]);
+  const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [correctionNote, setCorrectionNote] = useState("");
+  const [showModeMenu, setShowModeMenu] = useState(false);
+  const [currentMode, setCurrentMode] = useState<AnalysisMode | null>(null);
+  const modeMenuRef = useRef<HTMLDivElement>(null);
+
   const feedbackTypes = useQuery(trpc.feedbackType.list.queryOptions());
+
+  const aiAccuracy = useQuery(trpc.ai.accuracyStats.queryOptions());
 
   const createFeedbackMutation = useMutation(
     trpc.feedback.create.mutationOptions({
@@ -88,6 +133,36 @@ export default function ChatView({ chatId }: { chatId: string }) {
     }),
   );
 
+  const aiAnalyzeMutation = useMutation(
+    trpc.ai.analyzeChat.mutationOptions({
+      onSuccess: (data) => {
+        setAiSuggestions(data.suggestions);
+        setDismissedSuggestions(new Set());
+        setCurrentMode((data.mode as AnalysisMode) || "ALL");
+        if (data.suggestions.length === 0) {
+          toast.info("A IA não identificou mensagens que precisam de feedback");
+        } else {
+          toast.success(
+            `IA identificou ${data.suggestions.length} mensagem(ns) para feedback`,
+          );
+        }
+      },
+      onError: (error) => {
+        toast.error(error.message || "Erro ao analisar com IA");
+      },
+    }),
+  );
+
+  const resolveSuggestionMutation = useMutation(
+    trpc.ai.resolveSuggestion.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: trpc.ai.accuracyStats.queryOptions().queryKey,
+        });
+      },
+    }),
+  );
+
   const hasScrolledRef = useRef(false);
 
   useEffect(() => {
@@ -96,6 +171,108 @@ export default function ChatView({ chatId }: { chatId: string }) {
       hasScrolledRef.current = true;
     }
   }, [chat.data]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        modeMenuRef.current &&
+        !modeMenuRef.current.contains(e.target as Node)
+      ) {
+        setShowModeMenu(false);
+      }
+    }
+    if (showModeMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [showModeMenu]);
+
+  function handleAnalyze(mode: AnalysisMode) {
+    setShowModeMenu(false);
+    aiAnalyzeMutation.mutate({ chatId, mode });
+  }
+
+  function handleAcceptSuggestion(
+    suggestion: AISuggestion,
+    agentId: string | null,
+  ) {
+    if (!suggestion.feedbackTypeId) {
+      toast.error("Tipo de feedback não encontrado no sistema");
+      return;
+    }
+
+    createFeedbackMutation.mutate(
+      {
+        messageId: suggestion.messageId,
+        feedbackTypeId: suggestion.feedbackTypeId,
+        agentId,
+        comment: suggestion.comment || undefined,
+      },
+      {
+        onSuccess: () => {
+          resolveSuggestionMutation.mutate({
+            suggestionId: suggestion.id,
+            outcome: "ACCEPTED",
+          });
+          setDismissedSuggestions((prev) => {
+            const next = new Set(prev);
+            next.add(suggestion.messageId);
+            return next;
+          });
+        },
+      },
+    );
+  }
+
+  function handleRejectSuggestion(suggestion: AISuggestion) {
+    resolveSuggestionMutation.mutate({
+      suggestionId: suggestion.id,
+      outcome: "REJECTED",
+      correctionNote: correctionNote || undefined,
+    });
+    setDismissedSuggestions((prev) => {
+      const next = new Set(prev);
+      next.add(suggestion.messageId);
+      return next;
+    });
+    setRejectingId(null);
+    setCorrectionNote("");
+    toast.info("Sugestão rejeitada — correção registrada para aprendizado");
+  }
+
+  function handleEditSuggestion(
+    suggestion: AISuggestion,
+    msg: {
+      id: string;
+      agent?: { id: string } | null;
+      agentName: string | null;
+      text: string;
+    },
+  ) {
+    resolveSuggestionMutation.mutate({
+      suggestionId: suggestion.id,
+      outcome: "EDITED",
+      correctionNote: correctionNote || undefined,
+    });
+    setDismissedSuggestions((prev) => {
+      const next = new Set(prev);
+      next.add(suggestion.messageId);
+      return next;
+    });
+    setRejectingId(null);
+    setCorrectionNote("");
+    setSelectedFeedbackTypeId(suggestion.feedbackTypeId || "");
+    setComment(suggestion.comment || "");
+    setFeedbackModal({
+      messageId: msg.id,
+      agentId: msg.agent?.id ?? null,
+      agentName: msg.agentName,
+      messageText: msg.text.substring(0, 150),
+      preSelectedCategory:
+        (suggestion.category as "POSITIVE" | "NEUTRAL" | "NEGATIVE") || null,
+    });
+  }
 
   if (chat.isLoading) {
     return (
@@ -122,19 +299,109 @@ export default function ChatView({ chatId }: { chatId: string }) {
 
   if (!chat.data) return null;
 
+  const suggestionsByMessageId = new Map<string, AISuggestion>();
+  for (const s of aiSuggestions) {
+    if (!dismissedSuggestions.has(s.messageId)) {
+      suggestionsByMessageId.set(s.messageId, s);
+    }
+  }
+
+  const activeSuggestionsCount = suggestionsByMessageId.size;
+
   return (
     <div className="mx-auto max-w-4xl p-6">
       <div className="mb-6">
-        <Button color="tertiary" size="sm" onClick={() => router.back()}>
-          &larr; Voltar
-        </Button>
+        <div className="flex items-center justify-between">
+          <Button color="tertiary" size="sm" onClick={() => router.back()}>
+            &larr; Voltar
+          </Button>
+          <div className="flex items-center gap-3">
+            {aiAccuracy.data && aiAccuracy.data.total > 0 && (
+              <div
+                className="flex items-center gap-2 rounded-lg bg-secondary px-3 py-1.5"
+                title={`Precisão global da IA baseada em ${aiAccuracy.data.total} análise(s) resolvida(s)`}
+              >
+                <span className="text-xs text-tertiary">Precisão IA (global):</span>
+                <span
+                  className={cx(
+                    "text-xs font-semibold",
+                    aiAccuracy.data.usefulRate >= 70
+                      ? "text-success-primary"
+                      : aiAccuracy.data.usefulRate >= 40
+                        ? "text-warning-primary"
+                        : "text-error-primary",
+                  )}
+                >
+                  {aiAccuracy.data.usefulRate}%
+                </span>
+                <span className="text-xs text-quaternary">
+                  ({aiAccuracy.data.total} resolvidas)
+                </span>
+              </div>
+            )}
+
+            <div className="relative" ref={modeMenuRef}>
+              <Button
+                color="secondary"
+                size="sm"
+                isLoading={aiAnalyzeMutation.isPending}
+                onClick={() => {
+                  if (aiAnalyzeMutation.isPending) return;
+                  setShowModeMenu(!showModeMenu);
+                }}
+              >
+                {aiAnalyzeMutation.isPending
+                  ? "Analisando..."
+                  : "Analisar com IA"}
+              </Button>
+
+              {showModeMenu && (
+                <div className="absolute right-0 top-full z-30 mt-1 w-72 rounded-xl border border-secondary bg-primary p-1 shadow-xl">
+                  {(
+                    ["NEGATIVE", "POSITIVE", "NEUTRAL", "ALL"] as AnalysisMode[]
+                  ).map((mode) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      className="flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition hover:bg-secondary"
+                      onClick={() => handleAnalyze(mode)}
+                    >
+                      <Badge
+                        color={modeBadgeColors[mode]}
+                        size="sm"
+                      >
+                        {mode === "ALL"
+                          ? "Tudo"
+                          : mode === "NEGATIVE"
+                            ? "Erros"
+                            : mode === "POSITIVE"
+                              ? "Acertos"
+                              : "Atenção"}
+                      </Badge>
+                      <div>
+                        <p className="text-sm font-medium text-primary">
+                          {modeLabels[mode]}
+                        </p>
+                        <p className="text-xs text-tertiary">
+                          {modeDescriptions[mode]}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
         <div className="mt-4">
           <h1 className="text-display-xs font-semibold text-primary">
-            {chat.data.patientName || "Paciente n\u00e3o identificado"}
+            {chat.data.patientName || "Paciente não identificado"}
           </h1>
           <div className="mt-1 flex flex-wrap gap-4 text-sm text-tertiary">
             {chat.data.patientPhone && (
-              <span>{"\uD83D\uDCF1"} {chat.data.patientPhone}</span>
+              <span>
+                {"\uD83D\uDCF1"} {chat.data.patientPhone}
+              </span>
             )}
             <span>Status: {chat.data.chatGuruStatus}</span>
             <span>Mensagens: {chat.data.messages.length}</span>
@@ -142,6 +409,50 @@ export default function ChatView({ chatId }: { chatId: string }) {
           </div>
         </div>
       </div>
+
+      {aiAnalyzeMutation.isPending && (
+        <div className="mb-4 flex items-center gap-3 rounded-xl border border-brand-secondary bg-brand-secondary/30 px-4 py-3">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-brand-primary border-t-transparent" />
+          <p className="text-sm font-medium text-brand-primary">
+            A IA está analisando o chat... Isso pode levar alguns segundos.
+          </p>
+        </div>
+      )}
+
+      {activeSuggestionsCount > 0 && (
+        <div className="mb-4 flex items-center justify-between rounded-xl border border-brand-secondary bg-brand-secondary/30 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <p className="text-sm font-medium text-brand-primary">
+              {activeSuggestionsCount} sugestão(ões) da IA pendente(s)
+            </p>
+            {currentMode && currentMode !== "ALL" && (
+              <Badge color={modeBadgeColors[currentMode]} size="sm">
+                {modeLabels[currentMode]}
+              </Badge>
+            )}
+          </div>
+          <button
+            type="button"
+            className="text-xs font-medium text-brand-primary underline hover:no-underline"
+            onClick={() => {
+              for (const s of aiSuggestions) {
+                if (!dismissedSuggestions.has(s.messageId)) {
+                  resolveSuggestionMutation.mutate({
+                    suggestionId: s.id,
+                    outcome: "REJECTED",
+                    correctionNote: "Dispensado em lote",
+                  });
+                }
+              }
+              setDismissedSuggestions(
+                new Set(aiSuggestions.map((s) => s.messageId)),
+              );
+            }}
+          >
+            Dispensar todas
+          </button>
+        </div>
+      )}
 
       <div className="space-y-3 rounded-xl border border-secondary bg-secondary p-4">
         {chat.data.messages.map((msg, index) => {
@@ -153,6 +464,8 @@ export default function ChatView({ chatId }: { chatId: string }) {
               msg.timestamp,
               chat.data.messages[index - 1].timestamp,
             );
+
+          const suggestion = suggestionsByMessageId.get(msg.id);
 
           return (
             <div key={msg.id}>
@@ -179,6 +492,7 @@ export default function ChatView({ chatId }: { chatId: string }) {
                       isAgent
                         ? "rounded-tr-sm bg-utility-success-50"
                         : "rounded-tl-sm bg-primary",
+                      suggestion && "ring-2 ring-brand-primary",
                     )}
                   >
                     {isAgent && (
@@ -238,7 +552,9 @@ export default function ChatView({ chatId }: { chatId: string }) {
                           <div key={fb.id} className="flex items-center gap-1">
                             <Badge
                               size="sm"
-                              color={categoryBadgeColor[fb.feedbackType.category]}
+                              color={
+                                categoryBadgeColor[fb.feedbackType.category]
+                              }
                             >
                               {fb.feedbackType.name} (
                               {formatPoints(fb.feedbackType.points)})
@@ -259,6 +575,95 @@ export default function ChatView({ chatId }: { chatId: string }) {
                     )}
                   </div>
 
+                  {suggestion && (
+                    <div className="mt-2 rounded-lg border border-brand-secondary bg-brand-secondary/20 p-3">
+                      <div className="mb-2 flex items-center gap-2">
+                        <Badge
+                          size="sm"
+                          color={
+                            categoryBadgeColor[suggestion.category] || "warning"
+                          }
+                        >
+                          IA: {suggestion.feedbackTypeName}
+                        </Badge>
+                      </div>
+                      <p className="mb-1 text-xs text-secondary">
+                        {suggestion.reasoning}
+                      </p>
+                      {suggestion.comment && (
+                        <p className="mb-2 text-xs italic text-tertiary">
+                          &ldquo;{suggestion.comment}&rdquo;
+                        </p>
+                      )}
+
+                      {rejectingId === suggestion.id ? (
+                        <div className="space-y-2">
+                          <textarea
+                            value={correctionNote}
+                            onChange={(e) => setCorrectionNote(e.target.value)}
+                            placeholder="Por que está rejeitando? Isso ajuda a IA a melhorar..."
+                            rows={2}
+                            className="w-full rounded-md bg-primary px-2 py-1.5 text-xs text-primary ring-1 ring-primary ring-inset outline-hidden placeholder:text-placeholder focus:ring-2 focus:ring-brand"
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              className="rounded-md bg-error-secondary px-3 py-1 text-xs font-medium text-error-primary transition hover:bg-error-primary hover:text-white"
+                              onClick={() => handleRejectSuggestion(suggestion)}
+                            >
+                              Confirmar rejeição
+                            </button>
+                            <button
+                              type="button"
+                              className="rounded-md bg-tertiary/20 px-3 py-1 text-xs font-medium text-secondary transition hover:bg-tertiary/40"
+                              onClick={() => {
+                                setRejectingId(null);
+                                setCorrectionNote("");
+                              }}
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            className="rounded-md bg-success-primary px-3 py-1 text-xs font-medium text-white transition hover:bg-success-primary/80"
+                            onClick={() =>
+                              handleAcceptSuggestion(
+                                suggestion,
+                                msg.agent?.id ?? null,
+                              )
+                            }
+                            disabled={createFeedbackMutation.isPending}
+                          >
+                            Aceitar
+                          </button>
+                          <button
+                            type="button"
+                            className="rounded-md bg-tertiary/20 px-3 py-1 text-xs font-medium text-secondary transition hover:bg-tertiary/40"
+                            onClick={() =>
+                              handleEditSuggestion(suggestion, msg)
+                            }
+                          >
+                            Editar
+                          </button>
+                          <button
+                            type="button"
+                            className="rounded-md bg-error-secondary px-3 py-1 text-xs font-medium text-error-primary transition hover:bg-error-primary hover:text-white"
+                            onClick={() => {
+                              setRejectingId(suggestion.id);
+                              setCorrectionNote("");
+                            }}
+                          >
+                            Rejeitar
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {isAgent && (
                     <div className="mt-1.5 hidden items-center gap-2 group-hover:flex">
                       <button
@@ -276,7 +681,7 @@ export default function ChatView({ chatId }: { chatId: string }) {
                           });
                         }}
                       >
-                        <span className="text-sm">●</span> Erro
+                        <span className="text-sm">{"\u25CF"}</span> Erro
                       </button>
                       <button
                         type="button"
@@ -293,7 +698,8 @@ export default function ChatView({ chatId }: { chatId: string }) {
                           });
                         }}
                       >
-                        <span className="text-sm">●</span> Ponto de Atenção
+                        <span className="text-sm">{"\u25CF"}</span> Ponto de
+                        Atenção
                       </button>
                       <button
                         type="button"
@@ -310,7 +716,7 @@ export default function ChatView({ chatId }: { chatId: string }) {
                           });
                         }}
                       >
-                        <span className="text-sm">●</span> Acerto
+                        <span className="text-sm">{"\u25CF"}</span> Acerto
                       </button>
                     </div>
                   )}
@@ -328,13 +734,19 @@ export default function ChatView({ chatId }: { chatId: string }) {
             <h2 className="mb-1 text-lg font-semibold text-primary">
               Registrar Feedback
               {feedbackModal.preSelectedCategory === "NEGATIVE" && (
-                <span className="ml-2 text-sm font-normal text-error-primary">— Erro</span>
+                <span className="ml-2 text-sm font-normal text-error-primary">
+                  — Erro
+                </span>
               )}
               {feedbackModal.preSelectedCategory === "NEUTRAL" && (
-                <span className="ml-2 text-sm font-normal text-warning-primary">— Ponto de Atenção</span>
+                <span className="ml-2 text-sm font-normal text-warning-primary">
+                  — Ponto de Atenção
+                </span>
               )}
               {feedbackModal.preSelectedCategory === "POSITIVE" && (
-                <span className="ml-2 text-sm font-normal text-success-primary">— Acerto</span>
+                <span className="ml-2 text-sm font-normal text-success-primary">
+                  — Acerto
+                </span>
               )}
             </h2>
             <p className="mb-4 text-sm text-tertiary">
@@ -370,7 +782,10 @@ export default function ChatView({ chatId }: { chatId: string }) {
                     <option value="">Selecione o tipo...</option>
                     {feedbackModal.preSelectedCategory ? (
                       feedbackTypes.data
-                        ?.filter((ft) => ft.category === feedbackModal.preSelectedCategory)
+                        ?.filter(
+                          (ft) =>
+                            ft.category === feedbackModal.preSelectedCategory,
+                        )
                         .map((ft) => (
                           <option key={ft.id} value={ft.id}>
                             {ft.name} ({formatPoints(ft.points)})

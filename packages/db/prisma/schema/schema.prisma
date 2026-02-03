@@ -41,6 +41,13 @@ enum ContestationResolution {
   REMOVED
 }
 
+enum AiSuggestionOutcome {
+  PENDING
+  ACCEPTED
+  EDITED
+  REJECTED
+}
+
 // ─── Domain Models ───────────────────────────────────────
 
 model Department {
@@ -68,8 +75,9 @@ model Chat {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  messages   Message[]
-  importedBy User @relation("ChatImportedBy", fields: [importedById], references: [id])
+  messages    Message[]
+  aiAnalyses  AiAnalysis[]
+  importedBy  User @relation("ChatImportedBy", fields: [importedById], references: [id])
 
   @@index([importedById])
   @@map("chat")
@@ -92,9 +100,10 @@ model Message {
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
 
-  chat      Chat       @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  agent     User?      @relation("MessageAgent", fields: [agentId], references: [id])
-  feedbacks Feedback[]
+  chat           Chat            @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  agent          User?           @relation("MessageAgent", fields: [agentId], references: [id])
+  feedbacks      Feedback[]
+  aiSuggestions  AiSuggestion[]
 
   @@index([chatId])
   @@index([chatGuruMessageId])
@@ -111,7 +120,9 @@ model FeedbackType {
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 
-  feedbacks Feedback[]
+  feedbacks              Feedback[]
+  aiSuggestedFeedbacks   AiSuggestion[] @relation("AiSuggestedFeedbackType")
+  aiAppliedFeedbacks     AiSuggestion[] @relation("AiAppliedFeedbackType")
 
   @@unique([name])
   @@map("feedback_type")
@@ -172,4 +183,60 @@ model ContestationMessage {
 
   @@index([contestationId])
   @@map("contestation_message")
+}
+
+model AiAnalysis {
+  id            String   @id @default(cuid())
+  chatId        String
+  requestedById String
+  prompt        String
+  rawResponse   String
+  totalSuggestions Int
+  analysisMode  String   @default("ALL")
+  createdAt     DateTime @default(now())
+
+  chat        Chat           @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  requestedBy User           @relation("AiAnalysisRequestedBy", fields: [requestedById], references: [id])
+  suggestions AiSuggestion[]
+
+  @@index([chatId])
+  @@map("ai_analysis")
+}
+
+model AiSuggestion {
+  id                        String              @id @default(cuid())
+  analysisId                String
+  messageId                 String
+  suggestedFeedbackTypeId   String?
+  suggestedFeedbackTypeName String
+  suggestedCategory         String
+  reasoning                 String
+  suggestedComment          String
+  outcome                   AiSuggestionOutcome @default(PENDING)
+  correctionNote            String?
+  appliedFeedbackTypeId     String?
+  vectorStoreFileId         String?
+  resolvedAt                DateTime?
+  createdAt                 DateTime            @default(now())
+
+  analysis              AiAnalysis    @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  message               Message       @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  suggestedFeedbackType FeedbackType? @relation("AiSuggestedFeedbackType", fields: [suggestedFeedbackTypeId], references: [id])
+  appliedFeedbackType   FeedbackType? @relation("AiAppliedFeedbackType", fields: [appliedFeedbackTypeId], references: [id])
+
+  @@index([analysisId])
+  @@index([messageId])
+  @@map("ai_suggestion")
+}
+
+model AiConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String   @db.Text
+  updatedAt   DateTime @updatedAt
+  updatedById String
+
+  updatedBy User @relation("AiConfigUpdatedBy", fields: [updatedById], references: [id])
+
+  @@map("ai_config")
 }

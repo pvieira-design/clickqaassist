@@ -11,6 +11,7 @@ const adminLinks = [
   { href: "/admin/feedback-types" as const, label: "Tipos de Feedback" },
   { href: "/admin/departments" as const, label: "Departamentos" },
   { href: "/admin/users" as const, label: "Usuários" },
+  { href: "/admin/ai-settings" as const, label: "Configurações da IA" },
 ];
 
 const leaderLinks = [

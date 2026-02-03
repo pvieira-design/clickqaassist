@@ -26,6 +26,8 @@ model User {
   feedbacksReceived      Feedback[]            @relation("FeedbackAgent")
   contestationsResolved  Contestation[]        @relation("ContestationResolvedBy")
   contestationMessages   ContestationMessage[] @relation("ContestationMessageAuthor")
+  aiAnalysesRequested    AiAnalysis[]          @relation("AiAnalysisRequestedBy")
+  aiConfigUpdates        AiConfig[]            @relation("AiConfigUpdatedBy")
 
   @@unique([email])
   @@index([departmentId])

@@ -6,6 +6,8 @@ import { chatRouter } from "./chat";
 import { feedbackRouter } from "./feedback";
 import { contestationRouter } from "./contestation";
 import { scoreRouter } from "./score";
+import { aiRouter } from "./ai";
+import { aiSettingsRouter } from "./aiSettings";
 
 export const appRouter = router({
   healthCheck: publicProcedure.query(() => {
@@ -24,5 +26,7 @@ export const appRouter = router({
   feedback: feedbackRouter,
   contestation: contestationRouter,
   score: scoreRouter,
+  ai: aiRouter,
+  aiSettings: aiSettingsRouter,
 });
 export type AppRouter = typeof appRouter;

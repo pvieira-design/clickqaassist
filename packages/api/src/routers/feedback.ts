@@ -41,7 +41,7 @@ export const feedbackRouter = router({
               agentName: true,
               timestamp: true,
               direction: true,
-              chat: { select: { id: true, patientName: true } },
+              chat: { select: { id: true, patientName: true, chatGuruUrl: true } },
             },
           },
           contestation: { select: { id: true, resolution: true } },
