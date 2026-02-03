@@ -1,4 +1,6 @@
-const CHATGURU_API_URL = "https://api.clickchathistory.com";
+import { env } from "@clickqaassist/env/server";
+
+const CHATGURU_API_URL = env.CHATGURU_API_URL;
 
 export interface ChatGuruUser {
   id: string;

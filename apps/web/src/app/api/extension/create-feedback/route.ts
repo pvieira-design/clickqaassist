@@ -4,12 +4,17 @@ import { parseChatGuruUrl } from "@clickqaassist/api/services/chatguru";
 
 const EXTENSION_API_KEY = process.env.EXTENSION_API_KEY;
 
+function getAllowedOrigins(): string[] {
+  const origins: string[] = [];
+  if (process.env.CORS_ORIGIN) origins.push(process.env.CORS_ORIGIN);
+  if (process.env.NODE_ENV !== "production") {
+    origins.push("http://localhost:3000", "http://localhost:3001");
+  }
+  return origins;
+}
+
 function corsHeaders(origin: string | null) {
-  const allowed = [
-    "http://localhost:3001",
-    "http://localhost:3000",
-    process.env.CORS_ORIGIN,
-  ].filter(Boolean) as string[];
+  const allowed = getAllowedOrigins();
   const match = origin && allowed.includes(origin) ? origin : allowed[0];
   return {
     "Access-Control-Allow-Origin": match ?? "",

@@ -10,6 +10,8 @@ export const env = createEnv({
     CORS_ORIGIN: z.url(),
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
     RESEND_API_KEY: z.string().min(1),
+    EXTENSION_API_KEY: z.string().min(1),
+    CHATGURU_API_URL: z.url().default("https://api.clickchathistory.com"),
   },
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,
