@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head><title>Generate Icons</title></head>
+<body>
+<p>Abra este arquivo no browser e clique nos links para baixar os icones. Salve na pasta icons/</p>
+<canvas id="c" style="display:none"></canvas>
+<script>
+function generateIcon(size) {
+  const c = document.getElementById('c');
+  c.width = size;
+  c.height = size;
+  const ctx = c.getContext('2d');
+
+  ctx.fillStyle = '#10b981';
+  ctx.beginPath();
+  ctx.roundRect(0, 0, size, size, size * 0.2);
+  ctx.fill();
+
+  ctx.fillStyle = '#fff';
+  ctx.font = `bold ${size * 0.4}px -apple-system, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('QA', size / 2, size / 2);
+
+  return c.toDataURL('image/png');
+}
+
+[16, 48, 128].forEach(size => {
+  const a = document.createElement('a');
+  a.href = generateIcon(size);
+  a.download = `icon${size}.png`;
+  a.textContent = `Download icon${size}.png`;
+  a.style.display = 'block';
+  a.style.margin = '10px';
+  document.body.appendChild(a);
+});
+</script>
+</body>
+</html>

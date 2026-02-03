@@ -9,6 +9,9 @@
       "default": "./src/*.ts"
     }
   },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
+  },
   "scripts": {
     "db:push": "prisma db push",
     "db:generate": "prisma generate",

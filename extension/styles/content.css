@@ -1,0 +1,434 @@
+.clickqa-import-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  margin: 0 6px;
+  background: #10b981;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s;
+  white-space: nowrap;
+  line-height: 1.6;
+}
+
+.clickqa-import-button:hover {
+  background: #059669;
+}
+
+.clickqa-import-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.clickqa-btn-icon {
+  font-size: 14px;
+}
+
+.clickqa-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: clickqa-spin 0.6s linear infinite;
+}
+
+@keyframes clickqa-spin {
+  to { transform: rotate(360deg); }
+}
+
+.clickqa-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #fff;
+  z-index: 999999;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+  max-width: 360px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.clickqa-toast--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.clickqa-toast--info {
+  background: #3b82f6;
+}
+
+.clickqa-toast--success {
+  background: #10b981;
+}
+
+.clickqa-toast--error {
+  background: #ef4444;
+}
+
+/* ── Feedback Buttons Container ────────────────────────────── */
+
+.clickqa-feedback-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.novo-display-teste.enviada:hover .clickqa-feedback-buttons,
+.msg-out:hover .clickqa-feedback-buttons,
+.clickqa-feedback-buttons.clickqa-has-feedback {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.clickqa-feedback-buttons.clickqa-has-feedback .clickqa-feedback-actions {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.novo-display-teste.enviada:hover .clickqa-feedback-buttons.clickqa-has-feedback .clickqa-feedback-actions,
+.msg-out:hover .clickqa-feedback-buttons.clickqa-has-feedback .clickqa-feedback-actions {
+  opacity: 1;
+}
+
+/* ── Feedback Action Buttons ───────────────────────────────── */
+
+.clickqa-feedback-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.clickqa-feedback-btn {
+  padding: 2px 10px;
+  border: none;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, transform 0.1s;
+  line-height: 1.6;
+}
+
+.clickqa-feedback-btn:active {
+  transform: scale(0.95);
+}
+
+.clickqa-feedback-btn.clickqa-erro {
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+}
+
+.clickqa-feedback-btn.clickqa-erro:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+.clickqa-feedback-btn.clickqa-atencao {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+}
+
+.clickqa-feedback-btn.clickqa-atencao:hover {
+  background: #f59e0b;
+  color: #fff;
+}
+
+.clickqa-feedback-btn.clickqa-acerto {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+
+.clickqa-feedback-btn.clickqa-acerto:hover {
+  background: #10b981;
+  color: #fff;
+}
+
+/* ── Badges ────────────────────────────────────────────────── */
+
+.clickqa-badges-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.clickqa-feedback-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.clickqa-feedback-badge.clickqa-erro {
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+}
+
+.clickqa-feedback-badge.clickqa-atencao {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+}
+
+.clickqa-feedback-badge.clickqa-acerto {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+
+/* ── Modal ─────────────────────────────────────────────────── */
+
+.clickqa-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 9999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: clickqa-fadeIn 0.15s ease;
+}
+
+@keyframes clickqa-fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.clickqa-modal {
+  background: #fff;
+  border-radius: 12px;
+  width: 440px;
+  max-width: 92vw;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  animation: clickqa-scaleIn 0.2s ease;
+}
+
+@keyframes clickqa-scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.clickqa-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.clickqa-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.clickqa-modal-title-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.clickqa-modal-title-icon.clickqa-icon-erro {
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+}
+
+.clickqa-modal-title-icon.clickqa-icon-atencao {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+}
+
+.clickqa-modal-title-icon.clickqa-icon-acerto {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+
+.clickqa-modal-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #6b7280;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.clickqa-modal-close:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.clickqa-modal-body {
+  padding: 16px 20px;
+}
+
+.clickqa-message-preview {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #374151;
+}
+
+.clickqa-preview-row {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.clickqa-preview-row:last-child {
+  margin-bottom: 0;
+}
+
+.clickqa-preview-label {
+  font-weight: 600;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.clickqa-preview-text {
+  color: #374151;
+}
+
+.clickqa-agent-loading {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.clickqa-agent-unknown {
+  color: #d97706;
+  font-style: italic;
+}
+
+#clickqa-agent-name:not(.clickqa-agent-loading):not(.clickqa-agent-unknown) {
+  color: #111827;
+  font-weight: 600;
+}
+
+.clickqa-form-group {
+  margin-bottom: 14px;
+}
+
+.clickqa-form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 5px;
+}
+
+.clickqa-form-select,
+.clickqa-form-textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #111827;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+}
+
+.clickqa-form-select:focus,
+.clickqa-form-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.clickqa-form-textarea {
+  resize: vertical;
+  min-height: 64px;
+}
+
+.clickqa-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  border-radius: 0 0 12px 12px;
+}
+
+.clickqa-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.clickqa-btn:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.clickqa-btn-cancel {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.clickqa-btn-cancel:hover {
+  background: #e5e7eb;
+}
+
+.clickqa-btn-submit {
+  background: #3b82f6;
+  color: #fff;
+}
+
+.clickqa-btn-submit:hover {
+  background: #2563eb;
+}

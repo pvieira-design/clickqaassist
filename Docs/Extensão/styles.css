@@ -1,0 +1,908 @@
+/* ============================================
+   ChatGuru Feedback Extension - Click Cannabis
+   ============================================ */
+
+/* Container dos botões de feedback */
+.click-feedback-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 4px 8px;
+  align-items: flex-end;
+}
+
+/* Container sem feedback registrado - esconder até hover */
+.click-feedback-buttons:not(.has-feedback) {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* Mostrar container ao passar o mouse na mensagem */
+.novo-display-teste:hover .click-feedback-buttons:not(.has-feedback),
+.click-message-container:hover .click-feedback-buttons:not(.has-feedback),
+.row_msg:hover .click-feedback-buttons:not(.has-feedback),
+.click-feedback-buttons:not(.has-feedback):hover {
+  opacity: 1;
+}
+
+/* Container com feedback registrado - sempre visível */
+.click-feedback-buttons.has-feedback {
+  opacity: 1 !important;
+}
+
+/* Estilo base dos botões */
+.click-feedback-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 14px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: 0.3px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.click-feedback-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.click-feedback-btn:active {
+  transform: translateY(0);
+}
+
+/* Botão Erro */
+.click-feedback-btn.erro {
+  background: linear-gradient(135deg, #ff4757 0%, #ff3344 100%);
+  color: white;
+}
+
+.click-feedback-btn.erro:hover {
+  background: linear-gradient(135deg, #ff3344 0%, #e62233 100%);
+}
+
+/* Botão Atenção */
+.click-feedback-btn.atencao {
+  background: linear-gradient(135deg, #ffa502 0%, #ff8c00 100%);
+  color: white;
+}
+
+.click-feedback-btn.atencao:hover {
+  background: linear-gradient(135deg, #ff8c00 0%, #e67700 100%);
+}
+
+/* Botão Acerto */
+.click-feedback-btn.acerto {
+  background: linear-gradient(135deg, #2ed573 0%, #17c964 100%);
+  color: white;
+}
+
+.click-feedback-btn.acerto:hover {
+  background: linear-gradient(135deg, #17c964 0%, #0ea652 100%);
+}
+
+/* Ícones dos botões */
+.click-feedback-btn::before {
+  font-size: 12px;
+}
+
+.click-feedback-btn.erro::before {
+  content: "✕";
+}
+
+.click-feedback-btn.atencao::before {
+  content: "⚠";
+}
+
+.click-feedback-btn.acerto::before {
+  content: "✓";
+}
+
+/* ============================================
+   Modal de Feedback
+   ============================================ */
+
+.click-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.click-modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.click-modal {
+  background: #1a1a2e;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  transform: scale(0.9) translateY(20px);
+  transition: transform 0.3s ease;
+}
+
+.click-modal-overlay.active .click-modal {
+  transform: scale(1) translateY(0);
+}
+
+/* Header do Modal */
+.click-modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, transparent 100%);
+}
+
+.click-modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.click-modal-title-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: white;
+}
+
+.click-modal-title-icon.erro {
+  background: linear-gradient(135deg, #ff4757 0%, #ff3344 100%);
+}
+
+.click-modal-title-icon.atencao {
+  background: linear-gradient(135deg, #ffa502 0%, #ff8c00 100%);
+}
+
+.click-modal-title-icon.acerto {
+  background: linear-gradient(135deg, #2ed573 0%, #17c964 100%);
+}
+
+.click-modal-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #888;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.click-modal-close:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+/* Body do Modal */
+.click-modal-body {
+  padding: 24px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* Scrollbar customizada */
+.click-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.click-modal-body::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.click-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+/* Info da mensagem */
+.click-message-info {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 20px;
+  border-left: 3px solid #7c3aed;
+}
+
+.click-message-info-row {
+  display: flex;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #ccc;
+  line-height: 1.4;
+}
+
+.click-message-info-row:last-child {
+  margin-bottom: 0;
+}
+
+.click-message-info-label {
+  color: #888;
+  min-width: 85px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.click-message-info-value {
+  color: #fff;
+  word-break: break-word;
+}
+
+/* Campos do formulário */
+.click-form-group {
+  margin-bottom: 18px;
+}
+
+.click-form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #aaa;
+  margin-bottom: 8px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.click-form-select,
+.click-form-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 14px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.click-form-select:focus,
+.click-form-textarea:focus {
+  outline: none;
+  border-color: #7c3aed;
+  background: rgba(124, 58, 237, 0.1);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+}
+
+.click-form-select option {
+  background: #1a1a2e;
+  color: #fff;
+}
+
+.click-form-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.click-form-textarea::placeholder {
+  color: #666;
+}
+
+/* Footer do Modal */
+.click-modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.click-btn {
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  border: none;
+}
+
+.click-btn-cancel {
+  background: rgba(255, 255, 255, 0.1);
+  color: #aaa;
+}
+
+.click-btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.click-btn-submit {
+  background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+  color: white;
+}
+
+.click-btn-submit:hover {
+  background: linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+}
+
+.click-btn-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Loading state */
+.click-btn-submit.loading {
+  position: relative;
+  color: transparent;
+}
+
+.click-btn-submit.loading::after {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  top: 50%;
+  left: 50%;
+  margin: -9px 0 0 -9px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: click-spin 0.8s linear infinite;
+}
+
+@keyframes click-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Toast de notificação */
+.click-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 14px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  z-index: 9999999;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s ease;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.click-toast.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.click-toast.success {
+  background: linear-gradient(135deg, #2ed573 0%, #17c964 100%);
+}
+
+.click-toast.success::before {
+  content: "✓";
+}
+
+.click-toast.error {
+  background: linear-gradient(135deg, #ff4757 0%, #ff3344 100%);
+}
+
+.click-toast.error::before {
+  content: "✕";
+}
+
+.click-toast.info {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.click-toast.info::before {
+  content: "🎤";
+}
+
+/* Container de badges (para múltiplos feedbacks) */
+.click-badges-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+/* Container de ações (botões) */
+.click-feedback-actions {
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 4px;
+}
+
+/* Sem borda quando não tem badges */
+.click-feedback-buttons:not(.has-feedback) .click-feedback-actions {
+  border-top: none;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* Mostrar botões ao passar o mouse na mensagem - usando has-feedback */
+.novo-display-teste:hover .click-feedback-actions,
+.click-message-container:hover .click-feedback-actions,
+.row_msg:hover .click-feedback-actions,
+.click-feedback-buttons:hover .click-feedback-actions {
+  opacity: 1;
+}
+
+/* Badge de feedback já registrado */
+.click-feedback-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.click-feedback-badge.erro {
+  background: rgba(255, 71, 87, 0.2);
+  color: #ff4757;
+  border: 1px solid rgba(255, 71, 87, 0.3);
+}
+
+.click-feedback-badge.atencao {
+  background: rgba(255, 165, 2, 0.2);
+  color: #ffa502;
+  border: 1px solid rgba(255, 165, 2, 0.3);
+}
+
+.click-feedback-badge.acerto {
+  background: rgba(46, 213, 115, 0.2);
+  color: #2ed573;
+  border: 1px solid rgba(46, 213, 115, 0.3);
+}
+
+/* ============================================
+   Transcrição de Áudio
+   ============================================ */
+
+.click-transcricao {
+  background: rgba(124, 58, 237, 0.1);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 8px 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  animation: click-fade-in 0.3s ease;
+}
+
+@keyframes click-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.click-transcricao-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.click-transcricao-icon {
+  font-size: 12px;
+}
+
+.click-transcricao-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #7c3aed;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.click-transcricao-texto {
+  font-size: 13px;
+  color: #333;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+/* Tema escuro para a transcrição */
+.bg-sent-msg .click-transcricao {
+  background: rgba(124, 58, 237, 0.15);
+}
+
+.bg-sent-msg .click-transcricao-texto {
+  color: #e0e0e0;
+}
+
+/* ============================================
+   Ajustes específicos para ChatGuru
+   ============================================ */
+
+/* Garante que os botões fiquem visíveis ao lado das mensagens enviadas */
+.novo-display-teste.enviada {
+  position: relative;
+}
+
+/* Melhora a transição de hover */
+.novo-display-teste.enviada .click-feedback-buttons {
+  margin-right: 8px;
+}
+
+/* Posicionamento responsivo */
+@media (max-width: 768px) {
+  .click-modal {
+    width: 95%;
+    max-height: 85vh;
+  }
+  
+  .click-modal-body {
+    padding: 16px;
+  }
+  
+  .click-feedback-btn {
+    padding: 3px 8px;
+    font-size: 10px;
+  }
+}
+
+/* ============================================
+   Análise com IA - Botão Flutuante
+   ============================================ */
+
+.click-ai-analyze-btn {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  padding: 14px 22px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  z-index: 999998;
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+  transition: all 0.3s ease;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.click-ai-analyze-btn:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(139, 92, 246, 0.5);
+  background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+}
+
+.click-ai-analyze-btn:active:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.click-ai-analyze-btn:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ============================================
+   Análise com IA - Modal de Revisão
+   ============================================ */
+
+.click-ai-review-modal {
+  max-width: 640px;
+  width: 95%;
+}
+
+.click-ai-instructions {
+  color: #888;
+  font-size: 13px;
+  margin-bottom: 20px;
+  line-height: 1.5;
+  padding: 12px 16px;
+  background: rgba(139, 92, 246, 0.1);
+  border-radius: 10px;
+  border-left: 3px solid #8b5cf6;
+}
+
+.click-ai-suggestions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* Scrollbar customizada para lista */
+.click-ai-suggestions-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.click-ai-suggestions-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.click-ai-suggestions-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+/* Card de Sugestão */
+.click-ai-suggestion {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.25s ease;
+}
+
+.click-ai-suggestion:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.click-ai-suggestion.approved {
+  border-color: #2ed573;
+  background: rgba(46, 213, 115, 0.15);
+  box-shadow: 0 0 0 1px rgba(46, 213, 115, 0.3);
+}
+
+.click-ai-suggestion.rejected {
+  border-color: #ff4757;
+  background: rgba(255, 71, 87, 0.1);
+  opacity: 0.5;
+}
+
+.click-ai-suggestion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.click-ai-suggestion-type {
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.click-ai-suggestion-type.erro {
+  background: rgba(255, 71, 87, 0.2);
+  color: #ff4757;
+  border: 1px solid rgba(255, 71, 87, 0.3);
+}
+
+.click-ai-suggestion-type.atencao {
+  background: rgba(255, 165, 2, 0.2);
+  color: #ffa502;
+  border: 1px solid rgba(255, 165, 2, 0.3);
+}
+
+.click-ai-suggestion-type.acerto {
+  background: rgba(46, 213, 115, 0.2);
+  color: #2ed573;
+  border: 1px solid rgba(46, 213, 115, 0.3);
+}
+
+.click-ai-suggestion-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.click-ai-approve,
+.click-ai-reject {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.click-ai-approve {
+  background: rgba(46, 213, 115, 0.15);
+  color: #2ed573;
+}
+
+.click-ai-approve:hover {
+  background: #2ed573;
+  color: white;
+  transform: scale(1.1);
+}
+
+.click-ai-reject {
+  background: rgba(255, 71, 87, 0.15);
+  color: #ff4757;
+}
+
+.click-ai-reject:hover {
+  background: #ff4757;
+  color: white;
+  transform: scale(1.1);
+}
+
+/* Estado ativo dos botões */
+.click-ai-suggestion.approved .click-ai-approve {
+  background: #2ed573;
+  color: white;
+}
+
+.click-ai-suggestion.rejected .click-ai-reject {
+  background: #ff4757;
+  color: white;
+}
+
+.click-ai-suggestion-message {
+  font-size: 13px;
+  color: #aaa;
+  font-style: italic;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border-left: 3px solid rgba(255, 255, 255, 0.2);
+  line-height: 1.5;
+}
+
+.click-ai-suggestion-reason {
+  font-size: 12px;
+  color: #999;
+  line-height: 1.6;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.click-ai-suggestion-reason strong {
+  color: #bbb;
+  font-weight: 600;
+}
+
+/* Botão Aplicar desabilitado */
+.click-ai-apply-all:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsivo para IA */
+@media (max-width: 768px) {
+  .click-ai-analyze-btn {
+    bottom: 16px;
+    left: 16px;
+    padding: 12px 18px;
+    font-size: 13px;
+  }
+  
+  .click-ai-review-modal {
+    max-height: 80vh;
+  }
+  
+  .click-ai-suggestions-list {
+    max-height: 300px;
+  }
+  
+  .click-ai-suggestion {
+    padding: 12px;
+  }
+  
+  .click-ai-approve,
+  .click-ai-reject {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+}
+
+/* ============================================
+   Botão Exportar Chat em Markdown
+   ============================================ */
+
+.click-export-md-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 14px 22px;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  z-index: 999998;
+  box-shadow: 0 4px 20px rgba(5, 150, 105, 0.4);
+  transition: all 0.3s ease;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.click-export-md-btn:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(5, 150, 105, 0.5);
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+}
+
+.click-export-md-btn:active:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.click-export-md-btn:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+  transform: none;
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
+}
+
+/* Responsivo para botão de exportar */
+@media (max-width: 768px) {
+  .click-export-md-btn {
+    bottom: 16px;
+    right: 16px;
+    padding: 12px 18px;
+    font-size: 13px;
+  }
+}

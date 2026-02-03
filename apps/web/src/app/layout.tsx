@@ -1,24 +1,16 @@
 import type { Metadata } from "next";
 
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 
-import "../index.css";
+import "@/globals.css";
 import Header from "@/components/header";
 import Providers from "@/components/providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "clickqaassist",
-  description: "clickqaassist",
+  title: "Click QA Assistant",
+  description: "Sistema de controle de qualidade - Click Cannabis",
 };
 
 export default function RootLayout({
@@ -27,12 +19,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    <html lang="pt-BR">
+      <body className={`${inter.variable} antialiased`}>
         <Providers>
-          <div className="grid grid-rows-[auto_1fr] h-svh">
+          <div className="flex h-svh">
             <Header />
-            {children}
+            <main className="flex-1 overflow-y-auto">{children}</main>
           </div>
         </Providers>
       </body>

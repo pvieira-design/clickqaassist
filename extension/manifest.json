@@ -1,0 +1,50 @@
+{
+  "manifest_version": 3,
+  "name": "Click QA - Chat Importer",
+  "version": "1.0.0",
+  "description": "Importa chats do ChatGuru para o sistema Click QA Assist",
+
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+
+  "host_permissions": [
+    "https://*.chatguru.app/*",
+    "https://*.chatguru.com.br/*",
+    "http://localhost/*",
+    "https://*.vercel.app/*",
+    "https://api.clickchathistory.com/*"
+  ],
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.chatguru.app/chats*",
+        "https://*.chatguru.com.br/chats*"
+      ],
+      "js": ["content.js"],
+      "css": ["styles/content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

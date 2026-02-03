@@ -1,0 +1,17 @@
+Adicione os seguintes arquivos de ícone nesta pasta:
+
+- icon16.png (16x16 pixels)
+- icon48.png (48x48 pixels)
+- icon128.png (128x128 pixels)
+
+Você pode criar ícones simples usando:
+1. Canva (canva.com)
+2. Figma (figma.com)
+3. Qualquer editor de imagem
+
+Dica: Use um fundo verde (#2ed573) com as letras "CF" em branco para representar "Click Feedback"
+
+
+
+
+

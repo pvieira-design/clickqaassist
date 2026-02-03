@@ -1,9 +1,175 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated"
+  provider     = "prisma-client"
+  output       = "../generated"
   moduleFormat = "esm"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+// ─── Enums ───────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  LEADER
+  STAFF
+}
+
+enum FeedbackCategory {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+}
+
+enum FeedbackStatus {
+  PENDING
+  READ
+  ACKNOWLEDGED
+  CONTESTED
+  RESOLVED
+}
+
+enum MessageDirection {
+  PATIENT
+  AGENT
+}
+
+enum ContestationResolution {
+  MAINTAINED
+  CHANGED
+  REMOVED
+}
+
+// ─── Domain Models ───────────────────────────────────────
+
+model Department {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users User[] @relation("UserDepartment")
+
+  @@unique([name])
+  @@map("department")
+}
+
+model Chat {
+  id             String   @id @default(cuid())
+  chatGuruId     String   @unique
+  chatGuruStatus String
+  chatGuruUrl    String?
+  patientName    String?
+  patientPhone   String?
+  importedAt     DateTime @default(now())
+  importedById   String
+  totalMessages  Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  messages   Message[]
+  importedBy User @relation("ChatImportedBy", fields: [importedById], references: [id])
+
+  @@index([importedById])
+  @@map("chat")
+}
+
+model Message {
+  id                 String           @id @default(cuid())
+  chatId             String
+  chatGuruMessageId  String
+  direction          MessageDirection
+  agentName          String?
+  agentId            String?
+  text               String
+  messageType        String
+  isTemplate         Boolean          @default(false)
+  templateName       String?
+  timestamp          DateTime
+  isDeleted          Boolean          @default(false)
+  wasTranscribed     Boolean          @default(false)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  chat      Chat       @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  agent     User?      @relation("MessageAgent", fields: [agentId], references: [id])
+  feedbacks Feedback[]
+
+  @@index([chatId])
+  @@index([chatGuruMessageId])
+  @@index([agentId])
+  @@map("message")
+}
+
+model FeedbackType {
+  id        String           @id @default(cuid())
+  name      String
+  category  FeedbackCategory
+  points    Int
+  isActive  Boolean          @default(true)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  feedbacks Feedback[]
+
+  @@unique([name])
+  @@map("feedback_type")
+}
+
+model Feedback {
+  id             String         @id @default(cuid())
+  messageId      String
+  feedbackTypeId String
+  agentId        String?
+  registeredById String
+  comment        String?
+  status         FeedbackStatus @default(PENDING)
+  deletedAt      DateTime?
+  readAt         DateTime?
+  acknowledgedAt DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  message      Message       @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  feedbackType FeedbackType  @relation(fields: [feedbackTypeId], references: [id])
+  agent        User?         @relation("FeedbackAgent", fields: [agentId], references: [id])
+  registeredBy User          @relation("FeedbackRegisteredBy", fields: [registeredById], references: [id])
+  contestation Contestation?
+
+  @@index([messageId])
+  @@index([agentId])
+  @@index([registeredById])
+  @@index([feedbackTypeId])
+  @@map("feedback")
+}
+
+model Contestation {
+  id           String                  @id @default(cuid())
+  feedbackId   String                  @unique
+  resolvedAt   DateTime?
+  resolvedById String?
+  resolution   ContestationResolution?
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+
+  feedback   Feedback              @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  resolvedBy User?                 @relation("ContestationResolvedBy", fields: [resolvedById], references: [id])
+  messages   ContestationMessage[]
+
+  @@map("contestation")
+}
+
+model ContestationMessage {
+  id              String   @id @default(cuid())
+  contestationId  String
+  authorId        String
+  content         String
+  createdAt       DateTime @default(now())
+
+  contestation Contestation @relation(fields: [contestationId], references: [id], onDelete: Cascade)
+  author       User         @relation("ContestationMessageAuthor", fields: [authorId], references: [id])
+
+  @@index([contestationId])
+  @@map("contestation_message")
 }

@@ -1,15 +1,34 @@
 model User {
-  id            String    @id
-  name          String
-  email         String
-  emailVerified Boolean   @default(false)
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  sessions      Session[]
-  accounts      Account[]
+  id             String    @id
+  name           String
+  email          String
+  emailVerified  Boolean   @default(false)
+  image          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  role           String?   @default("staff")
+  banned         Boolean?  @default(false)
+  banReason      String?
+  banExpires     DateTime?
+  departmentId   String?
+  chatGuruName   String?
+  externalUserId String?
+  phone          String?
+  isActive       Boolean?  @default(true)
+
+  sessions Session[]
+  accounts Account[]
+
+  department             Department?           @relation("UserDepartment", fields: [departmentId], references: [id])
+  chatsImported          Chat[]                @relation("ChatImportedBy")
+  messagesAsAgent        Message[]             @relation("MessageAgent")
+  feedbacksRegistered    Feedback[]            @relation("FeedbackRegisteredBy")
+  feedbacksReceived      Feedback[]            @relation("FeedbackAgent")
+  contestationsResolved  Contestation[]        @relation("ContestationResolvedBy")
+  contestationMessages   ContestationMessage[] @relation("ContestationMessageAuthor")
 
   @@unique([email])
+  @@index([departmentId])
   @@map("user")
 }
 
